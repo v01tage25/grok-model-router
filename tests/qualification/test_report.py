@@ -57,3 +57,14 @@ def test_markdown_redacts_evidence_and_fingerprint_metadata():
     for value in ("path-secret", "version-secret", "evidence-secret", "detail-secret", "observation-secret"):
         assert value not in text
     assert "<redacted>" in text
+
+
+def test_markdown_redacts_escaped_json_credentials():
+    report = QualificationReport(
+        status="inconclusive",
+        fingerprint=HostFingerprint("path", 1, "a" * 64),
+        evidence=[Evidence("payload", "candidate", "fixture", r'{\"token\":\"escaped-secret\"}')],
+        blockers=[],
+        observations=[],
+    )
+    assert "escaped-secret" not in render_markdown(report)

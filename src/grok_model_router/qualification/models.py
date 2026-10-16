@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
+import re
 from typing import Literal
 
 from .redaction import redact_text
@@ -17,7 +18,16 @@ class HostFingerprint:
     version: str | None = None
 
     def __post_init__(self) -> None:
-        if not self.path or self.size_bytes < 0 or len(self.sha256) != 64:
+        if (
+            not isinstance(self.path, str)
+            or not self.path
+            or not isinstance(self.size_bytes, int)
+            or isinstance(self.size_bytes, bool)
+            or self.size_bytes < 0
+            or not isinstance(self.sha256, str)
+            or not re.fullmatch(r"[0-9a-fA-F]{64}", self.sha256)
+            or (self.version is not None and not isinstance(self.version, str))
+        ):
             raise ValueError("invalid host fingerprint")
 
 
@@ -29,7 +39,12 @@ class Evidence:
     detail: str
 
     def __post_init__(self) -> None:
-        if self.confidence not in {"confirmed", "candidate", "schema_only", "missing"}:
+        if (
+            not isinstance(self.kind, str)
+            or not isinstance(self.source, str)
+            or not isinstance(self.detail, str)
+            or self.confidence not in {"confirmed", "candidate", "schema_only", "missing"}
+        ):
             raise ValueError("invalid evidence confidence")
 
 
@@ -44,6 +59,8 @@ class QualificationReport:
     def __post_init__(self) -> None:
         if self.status not in {"qualified", "blocked", "inconclusive"}:
             raise ValueError("invalid qualification status")
+        if not isinstance(self.evidence, list) or not all(isinstance(item, Evidence) for item in self.evidence):
+            raise ValueError("invalid evidence")
         if not isinstance(self.blockers, list) or not all(isinstance(item, str) for item in self.blockers):
             raise ValueError("invalid blockers")
         if not isinstance(self.observations, list) or not all(isinstance(item, str) for item in self.observations):

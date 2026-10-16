@@ -136,3 +136,16 @@ def test_report_rejects_forged_qualified_with_confirmed_evidence(tmp_path):
         "observations": [],
     }), encoding="utf-8")
     assert main(["report", "--input", str(source)]) == 3
+
+
+def test_report_rejects_bad_fingerprint_types(tmp_path):
+    import json
+    from grok_model_router.qualification.cli import main
+
+    source = tmp_path / "report.json"
+    source.write_text(json.dumps({
+        "status": "inconclusive",
+        "fingerprint": {"path": 42, "size_bytes": 1, "sha256": "z" * 64, "version": None},
+        "evidence": [], "blockers": [], "observations": [],
+    }), encoding="utf-8")
+    assert main(["report", "--input", str(source)]) == 3

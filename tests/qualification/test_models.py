@@ -67,3 +67,27 @@ def test_report_dict_redacts_untrusted_metadata():
     text = str(payload)
     for value in ("path-secret", "version-secret", "source-secret", "detail-secret", "blocker-secret", "observation-secret"):
         assert value not in text
+
+
+def test_fingerprint_rejects_non_hex_sha256():
+    import pytest
+    with pytest.raises(ValueError):
+        HostFingerprint("path", 1, "z" * 64)
+
+
+def test_fingerprint_rejects_non_string_path():
+    import pytest
+    with pytest.raises(ValueError):
+        HostFingerprint(42, 1, "a" * 64)
+
+
+def test_report_rejects_malformed_evidence_list():
+    import pytest
+    with pytest.raises(ValueError):
+        QualificationReport(
+            status="inconclusive",
+            fingerprint=HostFingerprint("path", 1, "a" * 64),
+            evidence=42,
+            blockers=[],
+            observations=[],
+        )

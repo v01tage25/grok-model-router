@@ -4,6 +4,7 @@ import json
 import urllib.error
 import urllib.parse
 import urllib.request
+import uuid
 from dataclasses import dataclass
 
 from .models import Evidence
@@ -38,6 +39,10 @@ def project_agent_rows(payload: object) -> tuple[AgentSummary, ...]:
         harness = item.get("harness")
         if not isinstance(agent_id, str) or not agent_id.strip():
             raise ValueError("agent catalog row has invalid id")
+        try:
+            uuid.UUID(agent_id)
+        except (ValueError, AttributeError):
+            raise ValueError("agent catalog row has invalid id") from None
         if not isinstance(name, str):
             raise ValueError("agent catalog row has invalid name")
         if not isinstance(member_ids, list) or not all(isinstance(value, str) for value in member_ids):
@@ -106,8 +111,8 @@ def probe_list_agents(
         raise ValueError(f"gateway returned HTTP {exc.code}") from None
     except (urllib.error.URLError, TimeoutError) as exc:
         raise ValueError(f"gateway probe failed: {type(exc).__name__}") from None
-    except json.JSONDecodeError:
-        raise ValueError("gateway returned invalid JSON") from None
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        raise ValueError("invalid gateway response") from None
     return project_agent_rows(payload)
 
 
