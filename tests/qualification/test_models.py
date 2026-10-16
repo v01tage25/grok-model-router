@@ -37,3 +37,18 @@ def test_redact_text_removes_bearer_and_api_key_values():
     assert "super-secret" not in cleaned
     assert "abc123" not in cleaned
     assert "<redacted>" in cleaned
+
+
+def test_report_rejects_unknown_status_and_confidence():
+    import pytest
+
+    with pytest.raises(ValueError):
+        QualificationReport(
+            status="forged",
+            fingerprint=HostFingerprint("path", 1, "a" * 64),
+            evidence=[],
+            blockers=[],
+            observations=[],
+        )
+    with pytest.raises(ValueError):
+        Evidence(kind="x", confidence="forged", source="x", detail="x")

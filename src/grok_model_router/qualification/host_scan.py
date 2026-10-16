@@ -5,6 +5,7 @@ import re
 from pathlib import Path
 
 from .models import Evidence, HostFingerprint, QualificationReport
+from .redaction import redact_text
 
 _TRANSPORT_DEF = re.compile(r"function\s+transport\s*\(")
 _ORDINARY_SEND = re.compile(r"transport\.send\s*\(.*?agentId.*?modelId", re.DOTALL)
@@ -20,7 +21,9 @@ def fingerprint_host(path: Path, version_path: Path | None = None) -> HostFinger
 
     version = None
     if version_path is not None:
-        version = version_path.read_text(encoding="utf-8", errors="replace").strip() or None
+        if not version_path.is_file():
+            raise ValueError("version file not found")
+        version = redact_text(version_path.read_text(encoding="utf-8", errors="replace").strip()) or None
 
     return HostFingerprint(
         path=str(path),

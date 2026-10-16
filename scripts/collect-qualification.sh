@@ -27,4 +27,4 @@ else
 fi
 
 printf 'Qualification files written to %s (no host file changed; no chat prompt sent).\n' "$OUTPUT_DIR"
-exit "$(( scan_status > report_status ? scan_status : report_status ))"
+exit "$(( scan_status > report_status ? (scan_status > probe_status ? scan_status : probe_status) : (report_status > probe_status ? report_status : probe_status) ))"

@@ -10,6 +10,11 @@ from .models import Evidence
 from .redaction import safe_presence
 
 
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, *args, **kwargs):
+        return None
+
+
 @dataclass(frozen=True)
 class AgentSummary:
     agent_id: str
@@ -53,7 +58,7 @@ def project_agent_rows(payload: object) -> tuple[AgentSummary, ...]:
 
 def _assert_loopback(base_url: str) -> str:
     parsed = urllib.parse.urlparse(base_url)
-    if parsed.scheme != "http" or parsed.hostname not in {"127.0.0.1", "localhost", "::1"}:
+    if parsed.scheme != "http" or parsed.hostname not in {"127.0.0.1", "::1"}:
         raise ValueError("gateway URL must be loopback HTTP")
     return base_url.rstrip("/") + "/api/listAgents"
 
@@ -75,7 +80,8 @@ def probe_list_agents(
         },
     )
     try:
-        with urllib.request.urlopen(request, timeout=timeout_seconds) as response:
+        opener = urllib.request.build_opener(_NoRedirect)
+        with opener.open(request, timeout=timeout_seconds) as response:
             if response.status != 200:
                 raise ValueError(f"gateway returned HTTP {response.status}")
             payload = json.loads(response.read().decode("utf-8"))

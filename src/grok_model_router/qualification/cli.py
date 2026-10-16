@@ -8,7 +8,7 @@ import urllib.request
 from pathlib import Path
 from typing import Sequence
 
-from .gateway_probe import catalog_evidence, probe_list_agents
+from .gateway_probe import _assert_loopback, catalog_evidence, probe_list_agents
 from .host_scan import evaluate_static_evidence, fingerprint_host, scan_host_source
 from .models import Evidence, HostFingerprint, QualificationReport
 from .report import render_markdown
@@ -33,10 +33,14 @@ def _scan(args: argparse.Namespace) -> int:
         print(f"invalid host path: {host}")
         return 3
     version = Path(args.version_file) if args.version_file else None
-    report = evaluate_static_evidence(
-        fingerprint_host(host, version),
-        scan_host_source(host),
-    )
+    try:
+        report = evaluate_static_evidence(
+            fingerprint_host(host, version),
+            scan_host_source(host),
+        )
+    except (OSError, ValueError):
+        print("invalid host or version input")
+        return 3
     payload = json.dumps(report.to_dict(), indent=2, ensure_ascii=False) + "\n"
     _write(args.output, payload)
     return _status_code(report.status)
@@ -80,7 +84,12 @@ def _report(args: argparse.Namespace) -> int:
 
 
 def _doctor(args: argparse.Namespace) -> int:
-    request = urllib.request.Request(args.gateway.rstrip("/") + "/health")
+    try:
+        health_url = _assert_loopback(args.gateway).rsplit("/api/listAgents", 1)[0] + "/health"
+    except ValueError as exc:
+        _write(args.output, json.dumps({"error": str(exc)}) + "\n")
+        return 3
+    request = urllib.request.Request(health_url)
     try:
         with urllib.request.urlopen(request, timeout=args.timeout) as response:
             healthy = response.status == 200
@@ -124,6 +133,7 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: Sequence[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     return args.handler(args)
+
 
 if __name__ == "__main__":
     raise SystemExit(main())

@@ -41,3 +41,15 @@ def test_fingerprint_is_sha256_and_version_is_optional(tmp_path: Path):
     assert fingerprint.size_bytes == len(b"known fixture")
     assert len(fingerprint.sha256) == 64
     assert fingerprint.version is None
+
+
+def test_fingerprint_redacts_untrusted_version_file(tmp_path: Path):
+    host = tmp_path / "host.cjs"
+    version = tmp_path / "version"
+    host.write_bytes(b"fixture")
+    version.write_text("SAND_GATEWAY_TOKEN=do-not-echo", encoding="utf-8")
+
+    fingerprint = fingerprint_host(host, version)
+
+    assert fingerprint.version != "SAND_GATEWAY_TOKEN=do-not-echo"
+    assert "do-not-echo" not in (fingerprint.version or "")
