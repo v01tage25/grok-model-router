@@ -124,3 +124,6 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: Sequence[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     return args.handler(args)
+
+if __name__ == "__main__":
+    raise SystemExit(main())
