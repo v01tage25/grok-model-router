@@ -1,7 +1,0 @@
-Metadata-Version: 2.4
-Name: grok-model-router
-Version: 0.1.0.dev0
-Summary: Read-only transport qualification and model routing tools for Grok Bot VMs
-Requires-Python: >=3.11
-Provides-Extra: test
-Requires-Dist: pytest<9,>=8; extra == "test"

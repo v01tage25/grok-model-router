@@ -1,2 +1,0 @@
-[console_scripts]
-grok-router-qualify = grok_model_router.qualification.cli:main
