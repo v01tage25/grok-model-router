@@ -193,8 +193,8 @@ Publish source only after secret/data scanning and the user's review of reposito
 
 - VM OpenGrok cleanup: user-confirmed complete.
 - Scope specification: user-approved 2026-10-16.
-- Transport qualification: not started as a systematic packet; prior evidence retained above.
+- Transport qualification package: implemented and tested in the native worktree; VM verdict is still pending.
 - Runtime/adapter implementation: not started.
 - GitHub creation/publication: not started.
 - Canonical work-state MCP: two HTTP 400 ValidationError responses in planning turn; no successful task-state entry. Do not claim state convergence. This document is the visible progress record until the MCP schema issue is reconciled.
-- Next action: user reviews Stage Q plan and selects execution method. No host changes until qualified input and explicit installation approval.
+- Next action: run the qualification package against the VM and review its sanitized verdict. No host changes until qualified input and explicit installation approval.
