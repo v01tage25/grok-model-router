@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "grok-model-router"
+version = "0.1.0.dev0"
+description = "Read-only transport qualification and model routing tools for Grok Bot VMs"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.optional-dependencies]
+test = ["pytest>=8,<9"]
+
+[project.scripts]
+grok-router-qualify = "grok_model_router.qualification.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
