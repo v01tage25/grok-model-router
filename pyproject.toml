@@ -14,6 +14,7 @@ test = ["pytest>=8,<9"]
 
 [project.scripts]
 grok-router-qualify = "grok_model_router.qualification.cli:main"
+grok-routerd = "grok_model_router.routing.service:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
