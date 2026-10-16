@@ -13,10 +13,7 @@ Preserve the ordinary Grok Bot chat and tool/permission behavior while routing a
 
 The user performed all VM commands; there is no direct VM connection in this session. The following are observed evidence, not compatibility guarantees:
 
-- `POST http://127.0.0.1:1340/api/listAgents` returned HTTP 200.
-- It returned 12 rows: ten individual Bots and two groups. Every row reported `harness: "temporal"`.
-- Sunny UUID: `4c3499aa-126a-4b8a-89cb-bf9e1b4c48b7`. This is installation-specific data and must not be hardcoded into product defaults or published fixtures.
-- The observed host version was `885e54d`, size 30009308 bytes, SHA-256 `c58f16da00fca0bf48effad74295c735deee10377753fb5f50afc290e3af29e6`. A later restart occurred. Re-fingerprint before using this evidence.
+- The loopback roster API returned HTTP 200 during local discovery. The exact response, Bot UUIDs, host version, size, and SHA-256 are installation-specific and remain only in the operator's local qualification evidence; they are not hardcoded or published.
 - `sendPromptFields` has no provider, endpoint, model ID, or model-parameter fields.
 - `buildCloudAgentRequestedModel` is used in a background-composer path; that does not establish a transport for the ordinary Bot turn.
 - Declared protobuf types are not proof of implemented handlers, custom endpoint support, or an independently usable BYOK path.
@@ -196,5 +193,4 @@ Publish source only after secret/data scanning and the user's review of reposito
 - Transport qualification package: implemented and tested in the native worktree; VM verdict is still pending.
 - Runtime/adapter implementation: not started.
 - GitHub creation/publication: not started.
-- Canonical work-state MCP: two HTTP 400 ValidationError responses in planning turn; no successful task-state entry. Do not claim state convergence. This document is the visible progress record until the MCP schema issue is reconciled.
 - Next action: run the qualification package against the VM and review its sanitized verdict. No host changes until qualified input and explicit installation approval.

@@ -19,7 +19,7 @@ The implementation must not put provider keys in Git, route state, host bundles,
 
 ## 2. Confirmed environment constraints
 
-The current VM runs a packaged host at `/opt/sand/sand-host/host-main.cjs`, currently observed as version `885e54d` with a recorded SHA-256 from the probe session. The current host exposes a local gateway at `127.0.0.1:1340` and supports `POST /api/listAgents`, which returns Bot UUIDs and names.
+The current VM runs a packaged host and exposes a loopback gateway that was probed during discovery. Live paths, versions, hashes, and Bot identifiers are kept in local qualification evidence and are not part of this public repository.
 
 The gateway's `sendPrompt` contract does not accept `modelId`, `modelParams`, provider, or endpoint fields. Therefore the router cannot achieve transparent model switching by calling `/api/sendPrompt` or by editing `model-bindings.json`.
 
