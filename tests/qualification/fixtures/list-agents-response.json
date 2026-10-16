@@ -1,0 +1,20 @@
+[
+  {
+    "id": "agent-a",
+    "name": "Sunny",
+    "description": "private description must be discarded",
+    "lastMessagePreview": "private transcript must be discarded",
+    "isGroup": false,
+    "memberIds": [],
+    "harness": "temporal",
+    "apiKey": "must never be projected"
+  },
+  {
+    "id": "group-a",
+    "name": "Research",
+    "description": "discard",
+    "isGroup": true,
+    "memberIds": ["agent-a"],
+    "harness": "temporal"
+  }
+]
