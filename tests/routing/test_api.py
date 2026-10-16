@@ -67,3 +67,29 @@ def test_health_does_not_expose_routes_or_credentials(api_server):
     status, body = request(api_server, "GET", "/healthz")
     assert status == 200
     assert body == {"ok": True}
+
+
+def test_chat_completion_endpoint_uses_active_route(tmp_path):
+    class Provider:
+        def __init__(self):
+            self.payloads = []
+
+        def chat_completion(self, payload):
+            self.payloads.append(payload)
+            return {"choices": [{"message": {"content": "routed"}}]}
+
+    provider = Provider()
+    store = RouteStore(tmp_path / "routes.db")
+    agent_id = "11111111-1111-4111-8111-111111111111"
+    store.set_route(agent_id, "xkiro", "x-ai/grok-4.7")
+    server = create_server(store, providers={"xkiro": provider}, host="127.0.0.1", port=0)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        status, body = request(server_url := f"http://127.0.0.1:{server.server_port}", "POST", f"/v1/routes/{agent_id}/chat/completions", {"model": "wrong", "messages": []})
+        assert status == 200
+        assert body["choices"][0]["message"]["content"] == "routed"
+        assert provider.payloads[0]["model"] == "x-ai/grok-4.7"
+    finally:
+        server.shutdown()
+        thread.join(timeout=2)

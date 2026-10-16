@@ -6,6 +6,7 @@ import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
 
+from .engine import RouteEngine, RoutePaused, RouteUnavailable
 from .store import RouteConflict, RouteState, RouteStore
 
 
@@ -20,7 +21,9 @@ def _route_payload(route: RouteState) -> dict[str, Any]:
     }
 
 
-def create_server(store: RouteStore, *, host: str = "127.0.0.1", port: int = 8767, auth_token: str | None = None):
+def create_server(store: RouteStore, *, providers: dict[str, object] | None = None, host: str = "127.0.0.1", port: int = 8767, auth_token: str | None = None):
+    engine = RouteEngine(store, providers or {})
+
     class Handler(BaseHTTPRequestHandler):
         def log_message(self, *_args):
             pass
@@ -84,6 +87,15 @@ def create_server(store: RouteStore, *, host: str = "127.0.0.1", port: int = 876
                 path = urllib.parse.urlparse(self.path).path.strip("/").split("/")
                 agent_id = self._agent_id(path)
                 body = self._body()
+                if kind == "action" and path[3:] == ["chat", "completions"]:
+                    try:
+                        return self._send(200, engine.chat_completion(agent_id, body))
+                    except RoutePaused:
+                        return self._send(409, {"error": "route is paused"})
+                    except RouteUnavailable:
+                        return self._send(503, {"error": "route unavailable"})
+                    except RuntimeError:
+                        return self._send(502, {"error": "provider request failed"})
                 expected = body.get("expectedEpoch")
                 if expected is not None and (not isinstance(expected, int) or isinstance(expected, bool)):
                     raise ValueError("expectedEpoch must be an integer")
