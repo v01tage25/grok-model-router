@@ -16,7 +16,7 @@ _ESCAPED_JSON = re.compile(
     re.IGNORECASE,
 )
 _JWT = re.compile(r"\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b")
-_SENSITIVE_NAME = re.compile(r"(?:api[_-]?key|token|secret|password|credential|cookie)", re.IGNORECASE)
+_SENSITIVE_NAME = re.compile(r"(?:[A-Za-z0-9]+[_-])*(?:api[_-]?key|token|secret|password|credential|cookie)(?:[_-][A-Za-z0-9]+)*", re.IGNORECASE)
 
 
 def _redact_escaped_json(match: re.Match[str]) -> str:
