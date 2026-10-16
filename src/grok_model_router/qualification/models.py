@@ -3,6 +3,8 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 from typing import Literal
 
+from .redaction import redact_text
+
 Confidence = Literal["confirmed", "candidate", "schema_only", "missing"]
 Status = Literal["qualified", "blocked", "inconclusive"]
 
@@ -42,6 +44,10 @@ class QualificationReport:
     def __post_init__(self) -> None:
         if self.status not in {"qualified", "blocked", "inconclusive"}:
             raise ValueError("invalid qualification status")
+        if not isinstance(self.blockers, list) or not all(isinstance(item, str) for item in self.blockers):
+            raise ValueError("invalid blockers")
+        if not isinstance(self.observations, list) or not all(isinstance(item, str) for item in self.observations):
+            raise ValueError("invalid observations")
         if self.status == "qualified":
             if self.blockers or not any(
                 item.kind == "ordinary-turn" and item.confidence == "confirmed"
@@ -50,10 +56,21 @@ class QualificationReport:
                 raise ValueError("qualified report lacks confirmed ordinary-turn evidence")
 
     def to_dict(self) -> dict[str, object]:
+        fingerprint = asdict(self.fingerprint)
+        fingerprint["path"] = redact_text(fingerprint["path"])
+        fingerprint["version"] = redact_text(fingerprint["version"] or "") or None
         return {
             "status": self.status,
-            "fingerprint": asdict(self.fingerprint),
-            "evidence": [asdict(item) for item in self.evidence],
-            "blockers": list(self.blockers),
-            "observations": list(self.observations),
+            "fingerprint": fingerprint,
+            "evidence": [
+                {
+                    **asdict(item),
+                    "kind": redact_text(item.kind),
+                    "source": redact_text(item.source),
+                    "detail": redact_text(item.detail),
+                }
+                for item in self.evidence
+            ],
+            "blockers": [redact_text(item) for item in self.blockers],
+            "observations": [redact_text(item) for item in self.observations],
         }

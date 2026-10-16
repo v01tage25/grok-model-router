@@ -56,11 +56,28 @@ def project_agent_rows(payload: object) -> tuple[AgentSummary, ...]:
     return tuple(rows)
 
 
-def _assert_loopback(base_url: str) -> str:
+def _loopback_origin(base_url: str) -> str:
     parsed = urllib.parse.urlparse(base_url)
-    if parsed.scheme != "http" or parsed.hostname not in {"127.0.0.1", "::1"}:
-        raise ValueError("gateway URL must be loopback HTTP")
-    return base_url.rstrip("/") + "/api/listAgents"
+    if (
+        parsed.scheme != "http"
+        or parsed.hostname not in {"127.0.0.1", "::1"}
+        or parsed.username is not None
+        or parsed.password is not None
+        or parsed.query
+        or parsed.fragment
+        or parsed.path not in {"", "/"}
+    ):
+        raise ValueError("gateway URL must be a credential-free loopback HTTP origin")
+    try:
+        port = parsed.port
+    except ValueError:
+        raise ValueError("gateway URL has an invalid port") from None
+    host = f"[{parsed.hostname}]" if parsed.hostname == "::1" else parsed.hostname
+    return f"http://{host}{f':{port}' if port is not None else ''}"
+
+
+def _assert_loopback(base_url: str) -> str:
+    return _loopback_origin(base_url) + "/api/listAgents"
 
 
 def probe_list_agents(
@@ -80,7 +97,7 @@ def probe_list_agents(
         },
     )
     try:
-        opener = urllib.request.build_opener(_NoRedirect)
+        opener = urllib.request.build_opener(_NoRedirect())
         with opener.open(request, timeout=timeout_seconds) as response:
             if response.status != 200:
                 raise ValueError(f"gateway returned HTTP {response.status}")

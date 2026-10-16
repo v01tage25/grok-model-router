@@ -28,44 +28,28 @@ def test_invalid_payload_is_rejected_without_echoing_input():
 
 
 def test_probe_does_not_follow_authenticated_redirect(monkeypatch):
-    import json
-    import threading
-    from http.server import BaseHTTPRequestHandler, HTTPServer
+    import urllib.error
+    import urllib.request
 
     from grok_model_router.qualification.gateway_probe import probe_list_agents
 
-    class Handler(BaseHTTPRequestHandler):
-        target_hit = False
+    captured = {}
 
-        def do_POST(self):
-            if self.path == "/api/listAgents":
-                self.send_response(302)
-                self.send_header("Location", "/target")
-                self.end_headers()
-                return
-            if self.path == "/target":
-                type(self).target_hit = True
-                body = json.dumps([]).encode()
-                self.send_response(200)
-                self.send_header("Content-Length", str(len(body)))
-                self.end_headers()
-                self.wfile.write(body)
-                return
-            self.send_response(404)
-            self.end_headers()
+    class FakeOpener:
+        def open(self, request, timeout):
+            captured["request"] = request
+            captured["timeout"] = timeout
+            raise urllib.error.HTTPError(request.full_url, 302, "redirect", {}, None)
 
-        def log_message(self, *_args):
-            pass
+    def build_opener(*handlers):
+        captured["handlers"] = handlers
+        return FakeOpener()
 
-    server = HTTPServer(("127.0.0.1", 0), Handler)
-    thread = threading.Thread(target=server.serve_forever, daemon=True)
-    thread.start()
-    try:
-        import pytest
+    monkeypatch.setattr(urllib.request, "build_opener", build_opener)
 
-        with pytest.raises(ValueError, match="HTTP 302"):
-            probe_list_agents(f"http://127.0.0.1:{server.server_port}", "secret")
-        assert Handler.target_hit is False
-    finally:
-        server.shutdown()
-        thread.join(timeout=2)
+    import pytest
+
+    with pytest.raises(ValueError, match="HTTP 302"):
+        probe_list_agents("http://127.0.0.1:1340", "secret")
+    assert any(type(handler).__name__ == "_NoRedirect" for handler in captured["handlers"])
+    assert captured["request"].headers["Authorization"] == "Bearer secret"

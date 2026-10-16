@@ -69,6 +69,8 @@ def _report(args: argparse.Namespace) -> int:
         payload = json.loads(source.read_text(encoding="utf-8"))
         fingerprint = HostFingerprint(**payload["fingerprint"])
         evidence = [Evidence(**item) for item in payload["evidence"]]
+        if payload["status"] == "qualified":
+            raise ValueError("qualified reports require trusted qualification provenance")
         report = QualificationReport(
             status=payload["status"],
             fingerprint=fingerprint,

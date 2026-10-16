@@ -52,3 +52,18 @@ def test_report_rejects_unknown_status_and_confidence():
         )
     with pytest.raises(ValueError):
         Evidence(kind="x", confidence="forged", source="x", detail="x")
+
+
+def test_report_dict_redacts_untrusted_metadata():
+    report = QualificationReport(
+        status="inconclusive",
+        fingerprint=HostFingerprint("/tmp/API_KEY=path-secret", 1, "a" * 64, "TOKEN=version-secret"),
+        evidence=[Evidence("transport", "candidate", "Bearer source-secret", "token=detail-secret")],
+        blockers=["password=blocker-secret"],
+        observations=["secret=observation-secret"],
+    )
+
+    payload = report.to_dict()
+    text = str(payload)
+    for value in ("path-secret", "version-secret", "source-secret", "detail-secret", "blocker-secret", "observation-secret"):
+        assert value not in text
