@@ -84,3 +84,16 @@ def test_probe_converts_invalid_utf8_to_safe_error(monkeypatch):
     monkeypatch.setattr(urllib.request, "build_opener", lambda *_args: Opener())
     with pytest.raises(ValueError, match="invalid gateway response"):
         probe_list_agents("http://127.0.0.1:1340", "secret")
+
+
+def test_projection_rejects_invalid_group_member_ids():
+    import pytest
+    from grok_model_router.qualification.gateway_probe import project_agent_rows
+
+    with pytest.raises(ValueError, match="invalid memberIds"):
+        project_agent_rows([{
+            "id": "11111111-1111-4111-8111-111111111111",
+            "name": "Group",
+            "isGroup": True,
+            "memberIds": ["not-an-agent-id"],
+        }])

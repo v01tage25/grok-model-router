@@ -68,3 +68,17 @@ def test_markdown_redacts_escaped_json_credentials():
         observations=[],
     )
     assert "escaped-secret" not in render_markdown(report)
+
+
+def test_markdown_redacts_compound_escaped_json_credentials():
+    report = QualificationReport(
+        status="inconclusive",
+        fingerprint=HostFingerprint("path", 1, "a" * 64),
+        evidence=[Evidence("payload", "candidate", "fixture", r'{\"access_token\":\"a\",\"client_secret\":\"b\",\"refresh_token\":\"c\"}')],
+        blockers=[],
+        observations=[],
+    )
+    text = render_markdown(report)
+    assert "\"a\"" not in text
+    assert "\"b\"" not in text
+    assert "\"c\"" not in text

@@ -8,7 +8,7 @@ import urllib.request
 from pathlib import Path
 from typing import Sequence
 
-from .gateway_probe import _assert_loopback, catalog_evidence, probe_list_agents
+from .gateway_probe import _NoRedirect, _assert_loopback, catalog_evidence, probe_list_agents
 from .host_scan import evaluate_static_evidence, fingerprint_host, scan_host_source
 from .models import Evidence, HostFingerprint, QualificationReport
 from .report import render_markdown
@@ -93,7 +93,8 @@ def _doctor(args: argparse.Namespace) -> int:
         return 3
     request = urllib.request.Request(health_url)
     try:
-        with urllib.request.urlopen(request, timeout=args.timeout) as response:
+        opener = urllib.request.build_opener(_NoRedirect())
+        with opener.open(request, timeout=args.timeout) as response:
             healthy = response.status == 200
     except (urllib.error.URLError, TimeoutError):
         healthy = False

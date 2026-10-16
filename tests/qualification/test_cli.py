@@ -80,12 +80,14 @@ def test_doctor_does_not_follow_loopback_redirect(monkeypatch):
         def do_GET(self):
             if self.path == "/health":
                 self.send_response(302)
-                self.send_header("Location", "https://external.example/health")
+                self.send_header("Location", "/target")
                 self.send_header("Content-Length", "0")
+                self.send_header("Connection", "close")
                 self.end_headers()
                 return
             type(self).target_hit = True
             self.send_response(200)
+            self.send_header("Content-Length", "0")
             self.end_headers()
 
         def log_message(self, *_args):

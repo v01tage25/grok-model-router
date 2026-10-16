@@ -47,6 +47,11 @@ def project_agent_rows(payload: object) -> tuple[AgentSummary, ...]:
             raise ValueError("agent catalog row has invalid name")
         if not isinstance(member_ids, list) or not all(isinstance(value, str) for value in member_ids):
             raise ValueError("agent catalog row has invalid memberIds")
+        try:
+            for member_id in member_ids:
+                uuid.UUID(member_id)
+        except (ValueError, AttributeError):
+            raise ValueError("agent catalog row has invalid memberIds") from None
         if harness is not None and not isinstance(harness, str):
             raise ValueError("agent catalog row has invalid harness")
         rows.append(
