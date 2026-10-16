@@ -53,3 +53,17 @@ def test_fingerprint_redacts_untrusted_version_file(tmp_path: Path):
 
     assert fingerprint.version != "SAND_GATEWAY_TOKEN=do-not-echo"
     assert "do-not-echo" not in (fingerprint.version or "")
+
+
+def test_telemetry_transport_send_is_not_model_boundary(tmp_path: Path):
+    host = tmp_path / "host.cjs"
+    host.write_text(
+        Path("tests/qualification/fixtures/host-telemetry-transport.cjs").read_text(),
+        encoding="utf-8",
+    )
+
+    evidence = scan_host_source(host)
+    report = evaluate_static_evidence(fingerprint_host(host), evidence)
+
+    assert report.status == "inconclusive"
+    assert not any(item.confidence == "candidate" for item in evidence)

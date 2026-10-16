@@ -8,7 +8,7 @@ from .models import Evidence, HostFingerprint, QualificationReport
 from .redaction import redact_text
 
 _TRANSPORT_DEF = re.compile(r"function\s+transport\s*\(")
-_ORDINARY_SEND = re.compile(r"transport\.send\s*\(.*?agentId.*?modelId", re.DOTALL)
+_ORDINARY_SEND = re.compile(r"transport\.send\s*\(\s*\{[^}]{0,1200}agentId[^}]{0,1200}modelId[^}]*\}", re.DOTALL)
 
 
 def fingerprint_host(path: Path, version_path: Path | None = None) -> HostFingerprint:
