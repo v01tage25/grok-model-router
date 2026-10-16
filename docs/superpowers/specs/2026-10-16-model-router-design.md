@@ -1,7 +1,7 @@
 # Model Router — patched transport design
 
 **Date:** 2026-10-16  
-**Status:** Draft for review  
+**Status:** Approved by user on 2026-10-16; production transport compatibility remains unverified
 **Reference:** `promptadvisers/grokrouter` reviewed as an architectural reference; no code copied.
 
 ## 1. Goal
